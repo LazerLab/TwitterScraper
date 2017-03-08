@@ -1,8 +1,8 @@
 
-# File:         README.md
-# Date:         Tue Feb 21 13:23:21 EST 2017
-# Author(s):    Thalita Coleman  <thalitaneu@gmail.com>
-# Abstract:     Describes the process for retrieving tweets data from Twitter.
+File:         README.md
+Date:         Tue Feb 21 13:23:21 EST 2017
+Author(s):    Thalita Coleman  <thalitaneu@gmail.com>
+Abstract:     Describes the process for retrieving tweets data from Twitter.
 
 
 DESCRIPTION
