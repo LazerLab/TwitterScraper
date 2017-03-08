@@ -32,15 +32,15 @@ the directory where you desire to run the scripts. Then open the file twitterScr
 and write the name of your input file on the variable input_file_name. Finally, run
 twitterScraper.py. * * MAKE SURE YOUR INPUT FILE DOESN'T HAVE EMPTY LINES. * *
 
-The files function01.py, function02.py and your input file should be in the same
+The files seleniumDriver.py, getElements.py and your input file should be in the same
 directory as twitterScraper.py. twitterScraper.py will make calls to those files.
 
 Here is a diagram that explain what each script does:
 
 
 
- input_file                                                     function01.py & function02.py
- ----------                                                     -----------------------------
+ input_file                                                     seleniumDriver.py & getElements.py
+ ----------                                                     ----------------------------------
 Must contain                                            Contains functions that will be called
 1 twitter handle                                              by twitterScraper.py to retrieve
 per line. Must be \                                              /  various data from twitter.
