@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #============================================================================== 
 # File:         seleniumDriver.py
-# Date:         Tue Feb 21 13:13:04 EST 2017
+# Date:         Fri Mar 10 04:38:52 EST 2017
 # Author(s):    Thalita Coleman <thalitaneu@gmail.com>
 # Abstract:     Contains functions that parse twitter html source code and
 #               returns page body.
