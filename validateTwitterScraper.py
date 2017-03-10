@@ -129,7 +129,7 @@ def getTweetsFromSearchPage(target_user, out_path):
         of_tweets = open(outfile_name_tweets, "w")
         of_tweets.write('Type' + separator + 'TimeStamp' + separator + 'Tweet ID' + separator + 'Text' + separator +  'Reference Url' + separator + 'Reference Handle' + separator + 'Language' + separator + '# Replies' + separator + '# Retweets' + separator + '# Likes' + '\n')
 
-# sorts valid urls
+# validating and sorting urls
         count = 0
         for url in urls:
                 count = count + 1
