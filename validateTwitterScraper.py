@@ -1,6 +1,6 @@
 ##============================================================================== 
 # File:         validateTwitterScraper.py
-# Date:         Tue Feb 21 13:15:07 EST 2017
+# Date:         Fri Mar 10 04:46:16 EST 2017
 # Author(s):    Thalita Coleman  <thalitaneu@gmail.com>
 # Abstract:     Retrieves tweets data from advanced search results.
 #               Creates one TSV file for each twitter handle and saves
