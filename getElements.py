@@ -19,7 +19,6 @@ from datetime import timedelta
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 
-
 #----------------------------------------------------
 # Name: getTwitterFeed
 # Params: Accepts 1 twitter handle
@@ -34,18 +33,31 @@ def getTwitterFeed(twitterHandle):
 
 
 #----------------------------------------------------
+# Name: getAccountStatus
+# Params: Accepts soup for 1 twitter handle
+# Abstract: Returns account status: private or public
+#----------------------------------------------------
+def getAccountStatus(soups):
+        accountStatus = soups.findAll('div', {'class': "ProtectedTimeline"})
+        return accountStatus
+
+
+#----------------------------------------------------
 # Name: getJoinDate
 # Params: Accepts soup for 1 twitter handle
 # Abstract: Returns date the user joined twitter
 #----------------------------------------------------
 def getJoinDate(soup):
+        joindate=''
         spans= soup.findAll('span')
         for s in spans:
                 if s.has_attr('class'):
                         if 'ProfileHeaderCard-joinDateText' in s['class']:
                                 sDict = s.attrs #this is a dictionary
                                 joindate = sDict.get('title') #gets the value for title
-                                return joindate
+        if joindate == '':
+                joindate= 'unknown'
+        return joindate
 
 #----------------------------------------------------
 # Name: getTweetLis
@@ -65,6 +77,7 @@ def getTweetLis(soup):
                                 timelineDiv = div
 
         #returns div class="stream-container""
+
         timelineSubDivs= timelineDiv.findAll('div')
         for div in timelineSubDivs:
                 if div.has_attr('class'):
@@ -79,14 +92,18 @@ def getTweetLis(soup):
                                 tweetList = ol
 
         #returns ALL li class="js-stream-item
-        tweetLis= []
+        tweetLis= ['N/A']
+        tweetFound = False
         lis = tweetList.findAll('li')
         for li in lis:
                 if li.has_attr('class'):
                         if 'stream-item' in li['class']:
+                                if tweetFound == False:
+                                        tweetFound = True
+                                        tweetLis.pop(0)
                                 tweetLis.append(li)
         return tweetLis
-        
+
 
 #----------------------------------------------------
 # Name: tweetType
@@ -94,6 +111,8 @@ def getTweetLis(soup):
 # Abstract: Returns tweet type
 #----------------------------------------------------
 def tweetType(li):
+        if li == 'N/A':
+                return li
         divs= li.findAll('div')
         for div in divs:
                 if div.has_attr('data-retweet-id'):
@@ -112,13 +131,16 @@ def tweetType(li):
                         if 'twitter-atreply' in a['class']:
                                 return "Reply"
         return "Tweet"
- 
+
+
 #----------------------------------------------------
 # Name: getTimeStamp
 # Params: Accepts 1 li tag
 # Abstract: Returns tweet timestamp for li param
 #----------------------------------------------------
 def getTimeStamp(li):
+        if li == 'N/A':
+                return li
         allAs= li.findAll('a')
         for a in allAs:
                 if a.has_attr('class'):
@@ -134,7 +156,9 @@ def getTimeStamp(li):
 # Abstract: Returns tweet ID
 #----------------------------------------------------
 def getTweetID(li):
-        tweetID = ''
+        if li == 'N/A':
+                return li
+        tweetID = 'N/A'
         divs = li.findAll('div')
         for div in divs:
                 if div.has_attr('class'):
@@ -143,7 +167,7 @@ def getTweetID(li):
                                 tweetID = divDict.get('data-tweet-id') #gets the value
                                 tweetID = str(tweetID)
         return tweetID
-     
+
 
 #----------------------------------------------------
 # Name: getTweetText
@@ -151,6 +175,8 @@ def getTweetID(li):
 # Abstract: Returns tweet text
 #----------------------------------------------------
 def getTweetText(li):
+        if li == 'N/A':
+                return li
         ps = li.findAll('p')
         content = ''
         for p in ps:
@@ -159,9 +185,10 @@ def getTweetText(li):
                                 for contentItem in p.contents:
                                         filteredContent= re.sub(r"<.*?>", "", str(contentItem))
                                         filteredContent= re.sub(r"\n", "<newline>", str(filteredContent))
+                                        filteredContent= re.sub(r'"', "<quote>", str(filteredContent))
                                         content= content + filteredContent
         return content
-        
+
 
 #----------------------------------------------------
 # Name: getTweetUrl
@@ -169,8 +196,10 @@ def getTweetText(li):
 # Abstract: Returns url for retweets and quotes
 #----------------------------------------------------
 def getTweetUrl(li):
+        if li == 'N/A':
+                return li
         tweetKind = tweetType(li)
-        tweetUrl = ''
+        tweetUrl = 'N/A'
         if tweetKind == 'Retweet':
                 allAs= li.findAll('a')
                 for a in allAs:
@@ -186,7 +215,7 @@ def getTweetUrl(li):
                                         divDict = div.attrs
                                         tweetUrl = divDict.get('href')
         return tweetUrl
-        
+
 
 #----------------------------------------------------
 # Name: getHandle
@@ -194,8 +223,10 @@ def getTweetUrl(li):
 # Abstract: Returns handle for retweet original and quotes
 #----------------------------------------------------
 def getHandle(li):
+        if li == 'N/A':
+                return li
         tweetKind = tweetType(li)
-        tweetHandle = ''
+        tweetHandle = 'N/A'
         if tweetKind == 'Retweet':
                 divs = li.findAll('div')
                 for div in divs:
@@ -219,19 +250,25 @@ def getHandle(li):
                                         tweetHandle = divDict.get('data-mentions')
         return tweetHandle
 
+
 #----------------------------------------------------
 # Name: getLanguages
 # Params: Accepts 1 li tag
 # Abstract: Returns language of tweet
 #----------------------------------------------------
 def getLanguage(li):
+        if li == 'N/A':
+                return li
+        lang = ''
         ps = li.findAll('p')
         for p in ps:
                 if p.has_attr('lang'):
                         pattrs = p.attrs
-                        return (pattrs.get('lang'))
-                #else:
-                        #return 'N/A'
+                        lang = (pattrs.get('lang'))
+                        break
+        if lang == '':
+                lang = 'N/A'
+        return lang
 
 
 #----------------------------------------------------
@@ -240,6 +277,9 @@ def getLanguage(li):
 # Abstract: Returns number of replies for li param
 #----------------------------------------------------
 def getReplies(li):
+        if li == 'N/A':
+                return li
+        replies = ''
         pattern1 = re.compile('.*repl.*')
         spans = li.findAll('span')
         for span in spans:
@@ -247,11 +287,10 @@ def getReplies(li):
                         if 'ProfileTweet-actionCountForAria' in span['class'] and pattern1.match(span.contents[0]):
                                 replies = span.contents[0]
                                 replies = replies.rsplit(' ',1)[0]
-                                return replies
-                        #else:
-                        #       return 'N/A'
-                        
-      
+                                break
+        if replies == '':
+                replies = 'N/A'
+        return replies
 
 #----------------------------------------------------
 # Name: getRetweets
@@ -259,7 +298,9 @@ def getReplies(li):
 # Abstract: Returns number of retweets for li param
 #----------------------------------------------------
 def getRetweets(li):
-        value = 'test'
+        if li == 'N/A':
+                return li
+        retweets = ''
         pattern1 = re.compile('.*retw.*')
         spans = li.findAll('span')
         for span in spans:
@@ -267,8 +308,10 @@ def getRetweets(li):
                         if 'ProfileTweet-actionCountForAria' in span['class'] and pattern1.match(span.contents[0]):
                                 retweets = span.contents[0]
                                 retweets = retweets.rsplit(' ',1)[0]
-                                return retweets
-
+                                break
+        if retweets == '':
+                retweets = 'N/A'
+        return retweets
 
 #----------------------------------------------------
 # Name: getLikes
@@ -276,6 +319,9 @@ def getRetweets(li):
 # Abstract: Returns number of likes for li param
 #----------------------------------------------------
 def getLikes(li):
+        if li == 'N/A':
+                return li
+        likes = ''
         pattern1 = re.compile('.*like.*')
         spans = li.findAll('span')
         for span in spans:
@@ -283,8 +329,10 @@ def getLikes(li):
                         if 'ProfileTweet-actionCountForAria' in span['class'] and pattern1.match(span.contents[0]):
                                 likes = span.contents[0]
                                 likes = likes.rsplit(' ',1)[0]
-                                return likes
-#                       else:
-#                                return 'N/A'
+                                break
+        if likes == '':
+                likes = 'N/A'
+        return likes
+
 
 
