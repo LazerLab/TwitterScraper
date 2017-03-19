@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #============================================================================== 
 # File:         getElements.py         
-# Date:         Tue Feb 21 13:21:46 EST 2017
+# Date:         Fri Mar 10 04:38:52 EST 2017
 # Author(s):    Thalita Coleman <thalitaneu@gmail.com>
 # Abstract:     Contains functions to retrieve data from twitter. 
 #------------------------------------------------------------------------------ 
@@ -93,14 +93,17 @@ def getTweetLis(soup):
                                 tweetList = ol
 
         #returns ALL li class="js-stream-item
-        tweetLis= []
+	tweetLis= ['N/A']
+        tweetFound = False
         lis = tweetList.findAll('li')
         for li in lis:
                 if li.has_attr('class'):
                         if 'stream-item' in li['class']:
+                                if tweetFound == False:
+                                        tweetFound = True
+                                        tweetLis.pop(0)
                                 tweetLis.append(li)
         return tweetLis
-
         
 
 #----------------------------------------------------
@@ -109,6 +112,8 @@ def getTweetLis(soup):
 # Abstract: Returns tweet type
 #----------------------------------------------------
 def tweetType(li):
+	if li == 'N/A':
+		return li
         divs= li.findAll('div')
         for div in divs:
                 if div.has_attr('data-retweet-id'):
@@ -134,6 +139,8 @@ def tweetType(li):
 # Abstract: Returns tweet timestamp for li param
 #----------------------------------------------------
 def getTimeStamp(li):
+	if li == 'N/A':
+                return li
         allAs= li.findAll('a')
         for a in allAs:
                 if a.has_attr('class'):
@@ -149,7 +156,9 @@ def getTimeStamp(li):
 # Abstract: Returns tweet ID
 #----------------------------------------------------
 def getTweetID(li):
-        tweetID = ''
+	if li == 'N/A':
+                return li
+        tweetID = 'N/A'
         divs = li.findAll('div')
         for div in divs:
                 if div.has_attr('class'):
@@ -166,6 +175,8 @@ def getTweetID(li):
 # Abstract: Returns tweet text
 #----------------------------------------------------
 def getTweetText(li):
+	if li == 'N/A':
+                return li
         ps = li.findAll('p')
         content = ''
         for p in ps:
@@ -174,6 +185,7 @@ def getTweetText(li):
                                 for contentItem in p.contents:
                                         filteredContent= re.sub(r"<.*?>", "", str(contentItem))
                                         filteredContent= re.sub(r"\n", "<newline>", str(filteredContent))
+                                        filteredContent= re.sub(r'"', "<quote>", str(filteredContent))
                                         content= content + filteredContent
         return content
         
@@ -184,8 +196,10 @@ def getTweetText(li):
 # Abstract: Returns url for retweets and quotes
 #----------------------------------------------------
 def getTweetUrl(li):
+	if li == 'N/A':
+                return li
         tweetKind = tweetType(li)
-        tweetUrl = ''
+        tweetUrl = 'N/A'
         if tweetKind == 'Retweet':
                 allAs= li.findAll('a')
                 for a in allAs:
@@ -209,8 +223,10 @@ def getTweetUrl(li):
 # Abstract: Returns handle for retweet original and quotes
 #----------------------------------------------------
 def getHandle(li):
+	if li == 'N/A':
+                return li
         tweetKind = tweetType(li)
-        tweetHandle = ''
+        tweetHandle = 'N/A'
         if tweetKind == 'Retweet':
                 divs = li.findAll('div')
                 for div in divs:
@@ -240,6 +256,8 @@ def getHandle(li):
 # Abstract: Returns language of tweet
 #----------------------------------------------------
 def getLanguage(li):
+	if li == 'N/A':
+                return li
 	lang = ''
         ps = li.findAll('p')
         for p in ps:
@@ -258,6 +276,9 @@ def getLanguage(li):
 # Abstract: Returns number of replies for li param
 #----------------------------------------------------
 def getReplies(li):
+	if li == 'N/A':
+                return li
+	replies = ''
         pattern1 = re.compile('.*repl.*')
         spans = li.findAll('span')
         for span in spans:
@@ -265,10 +286,10 @@ def getReplies(li):
                         if 'ProfileTweet-actionCountForAria' in span['class'] and pattern1.match(span.contents[0]):
                                 replies = span.contents[0]
                                 replies = replies.rsplit(' ',1)[0]
-                                return replies
-                        #else:
-                        #       return 'N/A'
-                        
+                       		break
+	if replies == '':
+		replies = 'N/A'
+	return replies 
       
 
 #----------------------------------------------------
@@ -277,7 +298,9 @@ def getReplies(li):
 # Abstract: Returns number of retweets for li param
 #----------------------------------------------------
 def getRetweets(li):
-        value = 'test'
+	if li == 'N/A':
+                return li
+	retweets = ''
         pattern1 = re.compile('.*retw.*')
         spans = li.findAll('span')
         for span in spans:
@@ -285,7 +308,10 @@ def getRetweets(li):
                         if 'ProfileTweet-actionCountForAria' in span['class'] and pattern1.match(span.contents[0]):
                                 retweets = span.contents[0]
                                 retweets = retweets.rsplit(' ',1)[0]
-                                return retweets
+				break
+	if retweets == '':
+		retweets = 'N/A'
+	return retweets
 
 
 #----------------------------------------------------
@@ -294,6 +320,9 @@ def getRetweets(li):
 # Abstract: Returns number of likes for li param
 #----------------------------------------------------
 def getLikes(li):
+	if li == 'N/A':
+                return li
+	likes = ''
         pattern1 = re.compile('.*like.*')
         spans = li.findAll('span')
         for span in spans:
@@ -301,8 +330,9 @@ def getLikes(li):
                         if 'ProfileTweet-actionCountForAria' in span['class'] and pattern1.match(span.contents[0]):
                                 likes = span.contents[0]
                                 likes = likes.rsplit(' ',1)[0]
-                                return likes
-#                       else:
-#                                return 'N/A'
+				break
+	if likes == '':
+		likes = 'N/A'
+	return likes
 
 

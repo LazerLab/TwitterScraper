@@ -3,7 +3,7 @@
 
 ##============================================================================== 
 # File:		twitterScraper.py
-# Date:		Tue Feb 21 13:15:07 EST 2017
+# Date:		Fri Mar 10 04:17:03 EST 2017
 # Author(s):	Thalita Coleman  <thalitaneu@gmail.com>
 # Abstract:	Retrieves tweets data from advanced search results.
 #		Creates one TSV file for each twitter handle and saves
@@ -63,7 +63,7 @@ if __name__ == "__main__":
 	config_fn = sys.argv[1]
 	config_d = load_dict_file(config_fn, True)
 	#TODO log config_d 
-	targets_fn = config_d['targets_fn'] #'clown.txt' #<<<<<< YOUR INPUT_FILE HERE
+	targets_fn = config_d['targets_fn'] 
 	#TODO err and exit if config_d['targets_fn'] key error.
 	
 	output_path = config_d['output_path'] if 'output_path' in config_d else 'output/' 
@@ -72,14 +72,14 @@ if __name__ == "__main__":
 	general_verbosity = config_d['general_verbosity'] if 'general_verbosity' in config_d else False
 	logs_path = config_d['logs_path'] if 'logs_path' in config_d else output_path 
 	
-	#input_file_name = 'test5.txt' #<<<<<< YOUR INPUT_FILE HERE
 	with codecs.open(targets_fn) as  fin:
 		target_usr_names = fin.readlines()
-	
+
+# writing logfile	
 logfile = logs_path + "/scrape" + str(datetime.date.today()) + ".log"
 log = open(logfile,'w')
-print "just opened logfile: "+ logfile
 
+# writing file to keep private accounts
 privateAcctFile = logs_path + "/privateAccounts" + str(datetime.date.today()) + ".txt"
 private = open(privateAcctFile,'w')
 
@@ -99,12 +99,12 @@ def getTweetsFromSearchPage(target_user, out_path):
 	feed = getTwitterFeed(twitterHandle)
 	soups = BeautifulSoup(feed, 'html.parser')
 	accountStatus = getAccountStatus(soups)
-	print accountStatus
+# testing for private account
 	if not  len(accountStatus) == 0:
 		private.write(twitterHandle + '\n')
                 return 0
+# getting user's join date
 	joinDate = getJoinDate(soups)
-	print "joinDate: " + str(joinDate)
 	joinDate = str(joinDate)
 	if joinDate == 'unknown':
 		log.write("Could not find joinDate for " + twitterHandle + '\n')
@@ -155,6 +155,7 @@ def getTweetsFromSearchPage(target_user, out_path):
 		text = getSearchBody(url,browser)
 		soup = BeautifulSoup(text, 'html.parser')
 		tweetLis= getTweetLis(soup)
+# testing for valid Lis
 		if not len(tweetLis) > 0:
 			log.write("Could not find Lis for " + twitterHandle + '\n')
 			return 0  
