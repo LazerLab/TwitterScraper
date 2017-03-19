@@ -84,7 +84,7 @@ private = open(privateAcctFile,'w')
 
 
 
-def getTweetsFromSearchPage():
+def getTweetsFromSearchPage(out_path):
 	separator='\t'
 # define twitterHandle
 	#twitterHandle = target_user.strip()
@@ -124,32 +124,31 @@ def getTweetsFromSearchPage():
 #	print 'Generated ' + str(len(urls)) + ' urls for '+ twitterHandle
 #
 
-# creates directory (if not already existed) and file
-	print 'Creating file: ' + 'validate' + twitterHandle + '.tsv'
-	if not os.path.exists(out_path):
-		os.makedirs(out_path)
-	outfile_name_tweets = out_path + '/' + 'validate' + twitterHandle + '.tsv'
-	outfile_name_tweets = outfile_name_tweets.replace('\n','')
-	of_tweets = open(outfile_name_tweets, "w")
-	of_tweets.write('Type' + separator + 'TimeStamp' + separator + 'Tweet ID' + separator + 'Text' + separator +  'Reference Url' + separator + 'Reference Handle' + separator + 'Language' + separator + '# Replies' + separator + '# Retweets' + separator + '# Likes' + '\n')
-
-
 # sorts valid urls
 	count = 0
-	for url in urls:
-		count = count + 1
-		browser.get(url)
-		pageSource = browser.page_source
-		soup = BeautifulSoup(pageSource, 'html.parser')
-		emptySearch = soup.find("div", attrs={"SearchEmptyTimeline-empty"})
-		if emptySearch is None:
+	for root, dirs, files in os.walk(sourceCode_path):
+        	for f in files:
+			#define twitter handle:
+			twitterHandle = (str(f)).split('.html',1)[0]
+			print '>>>>>>>>>>>' + twitterHandle
+			# creates directory (if not already existed) and file
+			print 'Creating file: ' + 'validate' + twitterHandle + '.tsv'
+			if not os.path.exists(out_path):
+				os.makedirs(out_path)
+			outfile_name_tweets = out_path + '/' + twitterHandle + '.tsv'
+			outfile_name_tweets = outfile_name_tweets.replace('\n','')
+			of_tweets = open(outfile_name_tweets, "w")
+			of_tweets.write('Type' + separator + 'TimeStamp' + separator + 'Tweet ID' + separator + 'Text' + separator +  'Reference Url' + separator + 'Reference Handle' + separator + 'Language' + separator + '# Replies' + separator + '# Retweets' + separator + '# Likes' + '\n')
+
+			#getting tweets from stored html source
+                	filePath = sourceCode_path + '/' + f
+                	file = open(filePath, 'r').read()
+                	#lines = file.readlines()
+			print "just read the lines"
+			count = count + 1
+			soup = BeautifulSoup(file, 'html.parser')
 			tweetLis= getTweetLis(soup)
-			print 'THIS SHOULD BE A VALID URL ' + str(count) + ' out of ' + str(len(urls)) + ': ' + url
-			if not len(tweetLis) > 0:
-				log.write("Could not find Lis for " + twitterHandle + '\n')
-				return 0  
 			li = tweetLis[0]
-			print 'Processing url ' + str(count) + ' out of ' + str(len(urls)) + ' for '+ twitterHandle + '. Url: ' + url 
 			for li in tweetLis:
 				print 'Writing results to file'
 				of_tweets.write('"' + tweetType(li) + '"'
@@ -164,7 +163,8 @@ def getTweetsFromSearchPage():
 							+ separator + '"' + getLikes(li) + '"'
 							+ '\n')
 	of_tweets.close()
-	browser.quit()
 	return 0
 
-results = Parallel(n_jobs=cores, verbose=parallel_verbosity)(delayed(getTweetsFromSearchPage)(target, output_path) for target in target_usr_names)
+
+print getTweetsFromSearchPage(output_path)
+#results = Parallel(n_jobs=cores, verbose=parallel_verbosity)(delayed(getTweetsFromSearchPage)(target, output_path) for target in target_usr_names)
