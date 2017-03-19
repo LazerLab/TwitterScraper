@@ -31,7 +31,7 @@ def getSearchBody(url, browser):
         while 1 == 1:
                 #body.send_keys(Keys.PAGE_DOWN)
                 browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                sleepamt = float("{0:.2f}".format(random.uniform(2.0,3.0)))
+                sleepamt = float("{0:.2f}".format(random.uniform(0.5,0.8)))
                 time.sleep(sleepamt)
                 body_len = len(body.get_attribute('innerHTML'))
                 i = i + 1

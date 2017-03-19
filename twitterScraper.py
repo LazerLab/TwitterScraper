@@ -19,8 +19,8 @@
 from pyvirtualdisplay import Display
 import os
 import requests
-from function01 import *
-from function02 import *
+from seleniumDriver import *
+from getElements import *
 from bs4 import BeautifulSoup
 from bs4.builder._lxml import LXML
 from selenium import webdriver
@@ -55,7 +55,38 @@ def load_dict_file(fn, verbose = False):
    
    
 
+
+
+if __name__ == "__main__":
+		
+	#reading config file and setting default params
+	config_fn = sys.argv[1]
+	config_d = load_dict_file(config_fn, True)
+	#TODO log config_d 
+	targets_fn = config_d['targets_fn'] #'clown.txt' #<<<<<< YOUR INPUT_FILE HERE
+	#TODO err and exit if config_d['targets_fn'] key error.
+	
+	output_path = config_d['output_path'] if 'output_path' in config_d else 'output/' 
+	cores = int(config_d['cores']) if 'cores' in config_d else 4
+	parallel_verbosity = int(config_d['parallel_verbosity']) if 'parallel_verbosity' in config_d else 5
+	general_verbosity = config_d['general_verbosity'] if 'general_verbosity' in config_d else False
+	logs_path = config_d['logs_path'] if 'logs_path' in config_d else output_path 
+	
+	#input_file_name = 'test5.txt' #<<<<<< YOUR INPUT_FILE HERE
+	with codecs.open(targets_fn) as  fin:
+		target_usr_names = fin.readlines()
+	
+logfile = logs_path + "/scrape" + str(datetime.date.today()) + ".log"
+log = open(logfile,'w')
+print "just opened logfile: "+ logfile
+
+privateAcctFile = logs_path + "/privateAccounts" + str(datetime.date.today()) + ".txt"
+private = open(privateAcctFile,'w')
+
+
+
 def getTweetsFromSearchPage(target_user, out_path):
+	separator='\t'
 # define twitterHandle
 	twitterHandle = target_user.strip()
 	#twitterHandle = #twitterHandle.replace('\n', '')
@@ -67,8 +98,17 @@ def getTweetsFromSearchPage(target_user, out_path):
 	print 'Processing account: ' + twitterHandle
 	feed = getTwitterFeed(twitterHandle)
 	soups = BeautifulSoup(feed, 'html.parser')
+	accountStatus = getAccountStatus(soups)
+	print accountStatus
+	if not  len(accountStatus) == 0:
+		private.write(twitterHandle + '\n')
+                return 0
 	joinDate = getJoinDate(soups)
+	print "joinDate: " + str(joinDate)
 	joinDate = str(joinDate)
+	if joinDate == 'unknown':
+		log.write("Could not find joinDate for " + twitterHandle + '\n')
+		return 0
 	joinDate = joinDate.split("-", 1)[1]
 	joinDate = datetime.datetime.strptime(joinDate, " %d %b %Y")
 
@@ -99,11 +139,10 @@ def getTweetsFromSearchPage(target_user, out_path):
 
 
 # creates directory (if not already existed) and file
-	separator='\t'
 	print 'Creating file: ' + twitterHandle + '.tsv'
 	if not os.path.exists(out_path):
 		os.makedirs(out_path)
-	outfile_name_tweets = out_path + twitterHandle + '.tsv'
+	outfile_name_tweets = out_path + '/' + twitterHandle + '.tsv'
 	outfile_name_tweets = outfile_name_tweets.replace('\n','')
 	of_tweets = open(outfile_name_tweets, "w")
 	of_tweets.write('Type' + separator + 'TimeStamp' + separator + 'Tweet ID' + separator + 'Text' + separator +  'Reference Url' + separator + 'Reference Handle' + separator + 'Language' + separator + '# Replies' + separator + '# Retweets' + separator + '# Likes' + '\n')
@@ -116,6 +155,9 @@ def getTweetsFromSearchPage(target_user, out_path):
 		text = getSearchBody(url,browser)
 		soup = BeautifulSoup(text, 'html.parser')
 		tweetLis= getTweetLis(soup)
+		if not len(tweetLis) > 0:
+			log.write("Could not find Lis for " + twitterHandle + '\n')
+			return 0  
 		li = tweetLis[0]
 		print 'Processing url ' + str(count) + ' out of ' + str(len(validUrls)) + ' for '+ twitterHandle + '. Url: ' + url 
 		for li in tweetLis:
@@ -132,26 +174,7 @@ def getTweetsFromSearchPage(target_user, out_path):
 							+ separator + '"' + getLikes(li) + '"'
 							+ '\n')
 	of_tweets.close()
+	browser.quit()
 	return 0
 
-
-if __name__ == "__main__":
-		
-	#reading config file and setting default params
-	config_fn = sys.argv[1]
-	config_d = load_dict_file(config_fn, True)
-	#TODO log config_d 
-	targets_fn = config_d['targets_fn'] #'clown.txt' #<<<<<< YOUR INPUT_FILE HERE
-	#TODO err and exit if config_d['targets_fn'] key error.
-	
-	output_path = config_d['output_path'] if 'output_path' in config_d else 'output/' 
-	cores = int(config_d['cores']) if 'cores' in config_d else 4
-	parallel_verbosity = int(config_d['parallel_verbosity']) if 'parallel_verbosity' in config_d else 5
-	general_verbosity = config_d['general_verbosity'] if 'general_verbosity' in config_d else False
-	logs_path = config_d['log_path'] if 'log_path' in config_d else output_path 
-	
-	#input_file_name = 'test5.txt' #<<<<<< YOUR INPUT_FILE HERE
-	with codecs.open(targets_fn) as  fin:
-		target_usr_names = fin.readlines()
-	
-	results = Parallel(n_jobs=cores, verbose=parallel_verbosity)(delayed(getTweetsFromSearchPage)(target, output_path) for target in target_usr_names)
+results = Parallel(n_jobs=cores, verbose=parallel_verbosity)(delayed(getTweetsFromSearchPage)(target, output_path) for target in target_usr_names)

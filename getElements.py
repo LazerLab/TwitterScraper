@@ -34,18 +34,31 @@ def getTwitterFeed(twitterHandle):
 
 
 #----------------------------------------------------
+# Name: getAccountStatus
+# Params: Accepts soup for 1 twitter handle
+# Abstract: Returns account status: private or public
+#----------------------------------------------------
+def getAccountStatus(soups):
+	accountStatus = soups.findAll('div', {'class': "ProtectedTimeline"})
+	return accountStatus
+
+
+#----------------------------------------------------
 # Name: getJoinDate
 # Params: Accepts soup for 1 twitter handle
 # Abstract: Returns date the user joined twitter
 #----------------------------------------------------
 def getJoinDate(soup):
+	joindate=''
         spans= soup.findAll('span')
         for s in spans:
                 if s.has_attr('class'):
                         if 'ProfileHeaderCard-joinDateText' in s['class']:
                                 sDict = s.attrs #this is a dictionary
                                 joindate = sDict.get('title') #gets the value for title
-                                return joindate
+	if joindate == '':
+		joindate= 'unknown'
+	return joindate
 
 #----------------------------------------------------
 # Name: getTweetLis
@@ -65,6 +78,7 @@ def getTweetLis(soup):
                                 timelineDiv = div
 
         #returns div class="stream-container""
+
         timelineSubDivs= timelineDiv.findAll('div')
         for div in timelineSubDivs:
                 if div.has_attr('class'):
@@ -86,6 +100,7 @@ def getTweetLis(soup):
                         if 'stream-item' in li['class']:
                                 tweetLis.append(li)
         return tweetLis
+
         
 
 #----------------------------------------------------
@@ -225,14 +240,17 @@ def getHandle(li):
 # Abstract: Returns language of tweet
 #----------------------------------------------------
 def getLanguage(li):
+	lang = ''
         ps = li.findAll('p')
         for p in ps:
                 if p.has_attr('lang'):
                         pattrs = p.attrs
-                        return (pattrs.get('lang'))
-                #else:
-                        #return 'N/A'
-
+                        lang = (pattrs.get('lang'))
+			break
+	if lang == '':
+		lang = 'N/A'
+	return lang
+	
 
 #----------------------------------------------------
 # Name: getReplies
