@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/Users/thalitadias/anaconda/bin/python
+
 # -*- coding: utf-8 -*-
 
 ##============================================================================== 
@@ -16,7 +17,6 @@
 #		where each line has a twitter handle.
 #============================================================================== 
 
-from pyvirtualdisplay import Display
 import os
 import requests
 from seleniumDriver import *
@@ -89,9 +89,7 @@ def getTweetsFromSearchPage(target_user, out_path):
 	twitterHandle = target_user.strip()
 	#twitterHandle = #twitterHandle.replace('\n', '')
 # launch browser
-	display = Display(visible=0, size=(1600,1200))
-	display.start()
-	browser= webdriver.Chrome('/home/tcoleman/chromedriver')
+	browser= webdriver.Chrome('/Users/thalitadias/Downloads/chromedriver')
 # get user's join date
 	print 'Processing account: ' + twitterHandle
 	feed = getTwitterFeed(twitterHandle)

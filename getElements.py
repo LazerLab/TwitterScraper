@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/Users/thalitadias/anaconda/bin/python
+
 #============================================================================== 
 # File:         getElements.py         
 # Date:         Fri Mar 10 04:38:52 EST 2017
