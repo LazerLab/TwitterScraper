@@ -3,17 +3,14 @@
 
 ##============================================================================== 
 # File:		getSourceCode.py
-# Date:		Fri Mar 10 04:17:03 EST 2017
+# Date:	        Mon Mar 20 00:04:07 EDT 2017
 # Author(s):	Thalita Coleman  <thalitaneu@gmail.com>
-# Abstract:	Retrieves tweets data from advanced search results.
-#		Creates one TSV file for each twitter handle and saves
-#		it in the output directory.
+# Abstract:	Retrieves source-code from advanced search results.
+#		Creates one HTML file for each twitter handle and saves
+#		it in the tmp directory.
 #------------------------------------------------------------------------------ 
 # Requirements: Python 2.7, BeautifulSoup, Requests, Chromedriver, joblib 
-#		function01.py and function02.py
 #------------------------------------------------------------------------------ 
-# Notes: 	The variable input_file_name is the name of an input file 
-#		where each line has a twitter handle.
 #============================================================================== 
 
 import os
@@ -53,9 +50,6 @@ def load_dict_file(fn, verbose = False):
     return d
    
    
-
-
-
 if __name__ == "__main__":
 		
 	#reading config file and setting default params
@@ -69,13 +63,17 @@ if __name__ == "__main__":
 	cores = int(config_d['cores']) if 'cores' in config_d else 4
 	parallel_verbosity = int(config_d['parallel_verbosity']) if 'parallel_verbosity' in config_d else 5
 	general_verbosity = config_d['general_verbosity'] if 'general_verbosity' in config_d else False
-	logs_path = config_d['logs_path'] if 'logs_path' in config_d else output_path 
+	logs_path = config_d['logs_path'] if 'logs_path' in config_d else 'logs/' 
 	sourceCode_path = config_d['sourceCode_path'] if 'sourceCode_path' in config_d else 'sourceCode_path/'
+	startDate = config_d['startDate'] if 'startDate' in config_d else '0'
+	endDate = config_d['endDate'] if 'endDate' in config_d else '0'
 	
 	with codecs.open(targets_fn) as  fin:
 		target_usr_names = fin.readlines()
 
 # writing logfile	
+if not os.path.exists(logs_path):
+	os.makedirs(logs_path)
 logfile = logs_path + "/scrape" + str(datetime.date.today()) + ".log"
 log = open(logfile,'w')
 
@@ -86,13 +84,14 @@ private = open(privateAcctFile,'w')
 
 
 def getSourceCode(target_user, sourceCode_path):
+	global startDate 
+	global endDate
 	separator='\t'
-# define twitterHandle
+# defining twitterHandle
 	twitterHandle = target_user.strip()
-	#twitterHandle = #twitterHandle.replace('\n', '')
-# launch browser
+# launching browser
 	browser= webdriver.Chrome('/Users/thalitadias/Downloads/chromedriver')
-# get user's join date
+# getting user's join date
 	print 'Processing account: ' + twitterHandle
 	feed = getTwitterFeed(twitterHandle)
 	soups = BeautifulSoup(feed, 'html.parser')
@@ -101,7 +100,7 @@ def getSourceCode(target_user, sourceCode_path):
 	if not  len(accountStatus) == 0:
 		private.write(twitterHandle + '\n')
                 return 0
-# getting user's join date
+# getting user's Twitter join date
 	joinDate = getJoinDate(soups)
 	joinDate = str(joinDate)
 	if joinDate == 'unknown':
@@ -110,8 +109,28 @@ def getSourceCode(target_user, sourceCode_path):
 	joinDate = joinDate.split("-", 1)[1]
 	joinDate = datetime.datetime.strptime(joinDate, " %d %b %Y")
 
-# define dates
+
+# defining dates
+	
+	if len(startDate) >= 8:
+		startDate = startDate.replace("-", " ")
+		startDate = datetime.datetime.strptime(startDate, "%d %m %Y")
+	else:
+		startDate = joinDate
+	
 	today = dt.datetime.today()
+	
+	if len(endDate) >= 8:
+		endDate  = endDate.replace("-", " ")
+		endDate = datetime.datetime.strptime(endDate, "%d %m %Y")
+	else:
+		endDate = today
+
+	if startDate > joinDate and startDate < today:
+		joinDate = startDate
+	if endDate > joinDate and endDate <= today:
+		today = endDate
+	
 	minus3days = (today + timedelta(days=-3))
 	firstDate = (joinDate + timedelta(days=-3))
 
