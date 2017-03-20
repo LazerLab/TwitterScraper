@@ -16,7 +16,7 @@
 import os
 import requests
 from seleniumDriver import *
-from getElements2 import *
+from getElements import *
 from bs4 import BeautifulSoup
 from bs4.builder._lxml import LXML
 from selenium import webdriver
@@ -134,30 +134,23 @@ def getSourceCode(target_user, sourceCode_path):
 	minus3days = (today + timedelta(days=-3))
 	firstDate = (joinDate + timedelta(days=-3))
 
-# generate urls
+# generating urls
 	urls = []
 	while minus3days >=  firstDate:
 		url = 'https://twitter.com/search?f=tweets&vertical=default&q=from%3A' + twitterHandle+ '%20since%3A' + minus3days.strftime("%Y-%m-%d") + '%20until%3A' + today.strftime("%Y-%m-%d") + '%20include%3Aretweets&src=typd'
 		urls.append(url)
 		today = minus3days
 		minus3days = (today + timedelta(days=-3))
-	print 'Generated ' + str(len(urls)) + ' urls for '+ twitterHandle
-
-# retrive source-code
-	for url in urls:
-		browser.get(url)
-		pageSource = browser.page_source
 
 
-# creates directory (if not already existed) and file
-	print 'Creating source-code file: ' + twitterHandle + '.html'
+# creating directory (if not already existed) and file
 	if not os.path.exists(sourceCode_path):
 		os.makedirs(sourceCode_path)
 	source_code = sourceCode_path + '/' + twitterHandle + '.html'
 	source_code = source_code.replace('\n','')
 	of_source_code = open(source_code, "w+")
 
-# retrive source-code
+# retriving source-code
         for url in urls:
                 browser.get(url)
                 pageSource = browser.page_source
