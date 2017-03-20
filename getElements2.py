@@ -67,33 +67,6 @@ def getJoinDate(soup):
 # Abstract: Returns Li's convitaining tweets for the specified twitter handle
 #----------------------------------------------------
 def getTweetLis(soup):
-#        allDivs = soup.findAll('div')
-
-        #returns div class="ProfileTimeline"
-#        for div in allDivs:
-#                if div.has_attr('class'):
-#                        if 'ProfileTimeline' in div['class']:
-#                                timelineDiv = div
-        #returns div class='content-main' for advanced search page
-#                        elif 'content-main' in div['class']:
-#                                timelineDiv = div
-
-        #returns div class="stream-container""
-
-#        timelineSubDivs= timelineDiv.findAll('div')
-#        for div in allDivs:
-#                if div.has_attr('class'):
-#                        if 'stream-container' in div['class']:
-#                                streamContainer = div
-
-        #returns ol class="stream-items
-#        ols = streamContainer.findAll('ol')
-#        for ol in ols:
-#                if ol.has_attr('id'):
-#                        if 'stream-item' in ol['id']:
-#                                tweetList = ol
-
-        #returns ALL li class="js-stream-item
 	tweetLis= ['N/A']
         tweetFound = False
         lis = soup.findAll('li')

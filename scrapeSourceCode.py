@@ -76,6 +76,10 @@ if __name__ == "__main__":
 	with codecs.open(targets_fn) as  fin:
 		target_usr_names = fin.readlines()
 	
+	for root, dirs, files in os.walk(sourceCode_path):
+		for f in files:
+			target_file = f
+
 logfile = logs_path + "/scrape" + str(datetime.date.today()) + ".log"
 log = open(logfile,'w')
 
@@ -84,45 +88,8 @@ private = open(privateAcctFile,'w')
 
 
 
-def getTweetsFromSearchPage(out_path):
+def getTweetsFromSourceCode(out_path):
 	separator='\t'
-# define twitterHandle
-	#twitterHandle = target_user.strip()
-	#twitterHandle = #twitterHandle.replace('\n', '')
-# launch browser
-	#browser= webdriver.Chrome('/Users/thalitadias/Downloads/chromedriver')
-# get user's join date
-#	print 'Processing account: ' + twitterHandle
-#	feed = getTwitterFeed(twitterHandle)
-#	soups = BeautifulSoup(feed, 'html.parser')
-#	accountStatus = getAccountStatus(soups)
-#	print 'defining account status'
-#	if not  len(accountStatus) == 0:
-#		private.write(twitterHandle + '\n')
-#                return 0
-#	joinDate = getJoinDate(soups)
-#	joinDate = str(joinDate)
-#	print 'defining joinDate'
-#	if joinDate == 'unknown':
-#		log.write("Could not find joinDate for " + twitterHandle + '\n')
-#		return 0
-#	joinDate = joinDate.split("-", 1)[1]
-#	joinDate = datetime.datetime.strptime(joinDate, " %d %b %Y")
-#
-## define dates
-#	today = dt.datetime.today()
-#	minus3days = (today + timedelta(days=-3))
-#	firstDate = (joinDate + timedelta(days=-3))
-#
-## generate urls
-#	urls = []
-#	while minus3days >=  firstDate:
-#		url = 'https://twitter.com/search?f=tweets&vertical=default&q=from%3A' + twitterHandle+ '%20since%3A' + minus3days.strftime("%Y-%m-%d") + '%20until%3A' + today.strftime("%Y-%m-%d") + '%20include%3Aretweets&src=typd'
-#		urls.append(url)
-#		today = minus3days
-#		minus3days = (today + timedelta(days=-3))
-#	print 'Generated ' + str(len(urls)) + ' urls for '+ twitterHandle
-#
 
 # sorts valid urls
 	count = 0
@@ -130,9 +97,7 @@ def getTweetsFromSearchPage(out_path):
         	for f in files:
 			#define twitter handle:
 			twitterHandle = (str(f)).split('.html',1)[0]
-			print '>>>>>>>>>>>' + twitterHandle
 			# creates directory (if not already existed) and file
-			print 'Creating file: ' + twitterHandle + '.tsv'
 			if not os.path.exists(out_path):
 				os.makedirs(out_path)
 			outfile_name_tweets = out_path + '/' + twitterHandle + '.tsv'
@@ -146,11 +111,8 @@ def getTweetsFromSearchPage(out_path):
 			file = file.replace('<html', '<neu') 
 			file = file.replace('</html', '</neu') 
 			file = file.replace('<!DOCTYPE html>', '') 
-			file = '<html>' + file
-			file = file + '</html>'
-			print file
+			file = '<html>' + file + '</html>'
                 	#lines = file.readlines()
-			print "just read the lines"
 			count = count + 1
 			soup = BeautifulSoup(file, 'html.parser')
 			tweetLis= getTweetLis(soup)
@@ -172,5 +134,5 @@ def getTweetsFromSearchPage(out_path):
 	return 0
 
 
-print getTweetsFromSearchPage(output_path)
-#results = Parallel(n_jobs=cores, verbose=parallel_verbosity)(delayed(getTweetsFromSearchPage)(target, output_path) for target in target_usr_names)
+#print getTweetsFromSearchPage(output_path)
+results = Parallel(n_jobs=cores, verbose=parallel_verbosity)(delayed(getTweetsFromSourceCode)(output_path) for target in target_file)

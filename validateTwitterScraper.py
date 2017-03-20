@@ -20,7 +20,7 @@
 import os
 import requests
 from seleniumDriver import *
-from getElements import *
+from getElements2 import *
 from bs4 import BeautifulSoup
 from bs4.builder._lxml import LXML
 from selenium import webdriver
