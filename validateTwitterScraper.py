@@ -70,11 +70,13 @@ if __name__ == "__main__":
 	cores = int(config_d['cores']) if 'cores' in config_d else 4
 	parallel_verbosity = int(config_d['parallel_verbosity']) if 'parallel_verbosity' in config_d else 5
 	general_verbosity = config_d['general_verbosity'] if 'general_verbosity' in config_d else False
-	logs_path = config_d['logs_path'] if 'logs_path' in config_d else output_path 
+	logs_path = config_d['logs_path'] if 'logs_path' in config_d else 'logs/' 
 	
 	with codecs.open(targets_fn) as  fin:
 		target_usr_names = fin.readlines()
 	
+if not os.path.exists(logs_path):
+        os.makedirs(logs_path)
 logfile = logs_path + "/scrape" + str(datetime.date.today()) + ".log"
 log = open(logfile,'w')
 
