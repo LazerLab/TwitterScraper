@@ -136,7 +136,7 @@ def getSourceCode(target_user, sourceCode_path):
 		os.makedirs(sourceCode_path)
 	source_code = sourceCode_path + '/' + twitterHandle + '.html'
 	source_code = source_code.replace('\n','')
-	of_source_code = open(source_code, "w")
+	of_source_code = open(source_code, "w+")
 
 # retrive source-code
         for url in urls:

@@ -20,7 +20,7 @@
 import os
 import requests
 from seleniumDriver import *
-from getElements import *
+from getElements2 import *
 from bs4 import BeautifulSoup
 from bs4.builder._lxml import LXML
 from selenium import webdriver
@@ -132,17 +132,23 @@ def getTweetsFromSearchPage(out_path):
 			twitterHandle = (str(f)).split('.html',1)[0]
 			print '>>>>>>>>>>>' + twitterHandle
 			# creates directory (if not already existed) and file
-			print 'Creating file: ' + 'validate' + twitterHandle + '.tsv'
+			print 'Creating file: ' + twitterHandle + '.tsv'
 			if not os.path.exists(out_path):
 				os.makedirs(out_path)
 			outfile_name_tweets = out_path + '/' + twitterHandle + '.tsv'
 			outfile_name_tweets = outfile_name_tweets.replace('\n','')
-			of_tweets = open(outfile_name_tweets, "w")
+			of_tweets = open(outfile_name_tweets, "w+")
 			of_tweets.write('Type' + separator + 'TimeStamp' + separator + 'Tweet ID' + separator + 'Text' + separator +  'Reference Url' + separator + 'Reference Handle' + separator + 'Language' + separator + '# Replies' + separator + '# Retweets' + separator + '# Likes' + '\n')
 
 			#getting tweets from stored html source
                 	filePath = sourceCode_path + '/' + f
                 	file = open(filePath, 'r').read()
+			file = file.replace('<html', '<neu') 
+			file = file.replace('</html', '</neu') 
+			file = file.replace('<!DOCTYPE html>', '') 
+			file = '<html>' + file
+			file = file + '</html>'
+			print file
                 	#lines = file.readlines()
 			print "just read the lines"
 			count = count + 1
