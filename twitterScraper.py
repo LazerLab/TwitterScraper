@@ -1,22 +1,19 @@
-#!/usr/bin/python
+#!/Users/thalitadias/anaconda/bin/python
+
 # -*- coding: utf-8 -*-
 
 ##============================================================================== 
-# File:		twitterScraper.py
-# Date:		Fri Mar 10 04:17:03 EST 2017
+# File:		validateTwitterScraper.py
+# Date:		Mon Mar 20 01:34:34 EDT 2017
 # Author(s):	Thalita Coleman  <thalitaneu@gmail.com>
 # Abstract:	Retrieves tweets data from advanced search results.
 #		Creates one TSV file for each twitter handle and saves
 #		it in the output directory.
 #------------------------------------------------------------------------------ 
 # Requirements: Python 2.7, BeautifulSoup, Requests, Chromedriver, joblib 
-#		function01.py and function02.py
 #------------------------------------------------------------------------------ 
-# Notes: 	The variable input_file_name is the name of an input file 
-#		where each line has a twitter handle.
 #============================================================================== 
 
-from pyvirtualdisplay import Display
 import os
 import requests
 from seleniumDriver import *
@@ -70,12 +67,16 @@ if __name__ == "__main__":
 	cores = int(config_d['cores']) if 'cores' in config_d else 4
 	parallel_verbosity = int(config_d['parallel_verbosity']) if 'parallel_verbosity' in config_d else 5
 	general_verbosity = config_d['general_verbosity'] if 'general_verbosity' in config_d else False
-	logs_path = config_d['logs_path'] if 'logs_path' in config_d else output_path 
+	logs_path = config_d['logs_path'] if 'logs_path' in config_d else 'logs/' 
+	startDate = config_d['startDate'] if 'startDate' in config_d else '0'
+        endDate = config_d['endDate'] if 'endDate' in config_d else '0'
 	
 	with codecs.open(targets_fn) as  fin:
 		target_usr_names = fin.readlines()
 
 # writing logfile	
+if not os.path.exists(logs_path):
+        os.makedirs(logs_path)
 logfile = logs_path + "/scrape" + str(datetime.date.today()) + ".log"
 log = open(logfile,'w')
 
@@ -86,24 +87,25 @@ private = open(privateAcctFile,'w')
 
 
 def getTweetsFromSearchPage(target_user, out_path):
+	global startDate
+        global endDate
 	separator='\t'
-# define twitterHandle
+# defining twitterHandle
 	twitterHandle = target_user.strip()
-	#twitterHandle = #twitterHandle.replace('\n', '')
-# launch browser
-	display = Display(visible=0, size=(1600,1200))
-	display.start()
-	browser= webdriver.Chrome('/home/tcoleman/chromedriver')
-# get user's join date
+# launching browser
+	browser= webdriver.Chrome('/Users/thalitadias/Downloads/chromedriver')
+# getting user's join date
 	print 'Processing account: ' + twitterHandle
 	feed = getTwitterFeed(twitterHandle)
 	soups = BeautifulSoup(feed, 'html.parser')
 	accountStatus = getAccountStatus(soups)
+
 # testing for private account
 	if not  len(accountStatus) == 0:
 		private.write(twitterHandle + '\n')
                 return 0
-# getting user's join date
+
+# getting user's Twitter join date
 	joinDate = getJoinDate(soups)
 	joinDate = str(joinDate)
 	if joinDate == 'unknown':
@@ -112,58 +114,67 @@ def getTweetsFromSearchPage(target_user, out_path):
 	joinDate = joinDate.split("-", 1)[1]
 	joinDate = datetime.datetime.strptime(joinDate, " %d %b %Y")
 
-# define dates
-	today = dt.datetime.today()
-	minus3days = (today + timedelta(days=-3))
-	firstDate = (joinDate + timedelta(days=-3))
+# defining dates
 
-# generate urls
+        if len(startDate) >= 8:
+                startDate = startDate.replace("-", " ")
+                startDate = datetime.datetime.strptime(startDate, "%d %m %Y")
+        else:
+                startDate = joinDate
+
+        today = dt.datetime.today()
+
+        if len(endDate) >= 8:
+                endDate  = endDate.replace("-", " ")
+                endDate = datetime.datetime.strptime(endDate, "%d %m %Y")
+        else:
+                endDate = today
+
+        if startDate > joinDate and startDate < today:
+                joinDate = startDate
+        if endDate > joinDate and endDate <= today:
+                today = endDate
+
+        minus3days = (today + timedelta(days=-3))
+        firstDate = (joinDate + timedelta(days=-3))
+
+
+# generating urls
 	urls = []
 	while minus3days >=  firstDate:
 		url = 'https://twitter.com/search?f=tweets&vertical=default&q=from%3A' + twitterHandle+ '%20since%3A' + minus3days.strftime("%Y-%m-%d") + '%20until%3A' + today.strftime("%Y-%m-%d") + '%20include%3Aretweets&src=typd'
 		urls.append(url)
 		today = minus3days
 		minus3days = (today + timedelta(days=-3))
-	print 'Generated ' + str(len(urls)) + ' urls for '+ twitterHandle
-
-# sorts valid urls
-	validUrls = []
-	for url in urls:
-		browser.get(url)
-		pageSource = browser.page_source
-		soup = BeautifulSoup(pageSource, 'html.parser')
-		emptySearch = soup.find("div", attrs={"SearchEmptyTimeline-empty"})
-		if emptySearch is None:
-			validUrls.append(url)
-	print 'Validated ' + str(len(validUrls)) + ' urls for '+ twitterHandle
 
 
-# creates directory (if not already existed) and file
-	print 'Creating file: ' + twitterHandle + '.tsv'
+# creating directory (if not already existed) and file
 	if not os.path.exists(out_path):
 		os.makedirs(out_path)
-	outfile_name_tweets = out_path + '/' + twitterHandle + '.tsv'
+	outfile_name_tweets = out_path + '/' + 'validate' + twitterHandle + '.tsv'
 	outfile_name_tweets = outfile_name_tweets.replace('\n','')
 	of_tweets = open(outfile_name_tweets, "w")
 	of_tweets.write('Type' + separator + 'TimeStamp' + separator + 'Tweet ID' + separator + 'Text' + separator +  'Reference Url' + separator + 'Reference Handle' + separator + 'Language' + separator + '# Replies' + separator + '# Retweets' + separator + '# Likes' + '\n')
 
 
-# retrieve data from search page and write to a file
+# sorting and scraping urls
 	count = 0
-	for url in validUrls:
+	for url in urls:
 		count = count + 1
-		text = getSearchBody(url,browser)
-		soup = BeautifulSoup(text, 'html.parser')
-		tweetLis= getTweetLis(soup)
-# testing for valid Lis
-		if not len(tweetLis) > 0:
-			log.write("Could not find Lis for " + twitterHandle + '\n')
-			return 0  
-		li = tweetLis[0]
-		print 'Processing url ' + str(count) + ' out of ' + str(len(validUrls)) + ' for '+ twitterHandle + '. Url: ' + url 
-		for li in tweetLis:
-			print 'Writing results to file'
-			of_tweets.write('"' + tweetType(li) + '"'
+		browser.get(url)
+		pageSource = browser.page_source
+		soup = BeautifulSoup(pageSource, 'html.parser')
+		emptySearch = soup.find("div", attrs={"SearchEmptyTimeline-empty"})
+		if emptySearch is None:
+			tweetLis= getTweetLis(soup)
+			if not len(tweetLis) > 0:
+				log.write("Could not find Lis for " + twitterHandle + '\n')
+				return 0  
+			li = tweetLis[0]
+
+#writing results to file
+			for li in tweetLis:
+				of_tweets.write('"' + tweetType(li) + '"'
 		  					+ separator + '"' + getTimeStamp(li) + '"'
 							+ separator + '"' + getTweetID(li) + '"'
 		  					+ separator + '"' + getTweetText(li) + '"' 
