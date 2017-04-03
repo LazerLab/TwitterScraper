@@ -61,6 +61,31 @@ def getJoinDate(soup):
 		joindate= 'unknown'
 	return joindate
 
+
+#----------------------------------------------------
+# Name: getTweetsAmmount
+# Params: Accepts soup for 1 twitter handle
+# Abstract: Returns number of tweets for that account
+#----------------------------------------------------
+def getTweetsAmmount(soup):
+	number=''
+        As= soup.findAll('a')
+        for a in As:
+                if a.has_attr('class'):
+                        if 'ProfileNav-stat' in a['class'] and 'js-nav' in a['class']:
+                                aDict = a.attrs #this is a dictionary
+                                number = aDict.get('title') #gets the value for title
+				number = number.split(" ", 1)
+				number = number[0]
+				print "printing variable number: " + str(number)
+	if number == '':
+		number= 'unknown'
+	return number
+
+#----------------------------------------------------
+# Name: getTweetLis
+# Params: Accepts soup for 1 twitter handle
+
 #----------------------------------------------------
 # Name: getTweetLis
 # Params: Accepts soup for 1 twitter handle
