@@ -97,7 +97,7 @@ def getTweetsFromSearchPage(target_user, out_path):
 # getting user's join date
 	print 'Processing account: ' + twitterHandle
 	feed = getTwitterFeed(twitterHandle)
-	soups = BeautifulSoup(feed, 'html.parser')
+	soups = BeautifulSoup(feed, 'lxml')
 	accountStatus = getAccountStatus(soups)
 
 # testing for private account
@@ -151,7 +151,7 @@ def getTweetsFromSearchPage(target_user, out_path):
 # creating directory (if not already existed) and file
 	if not os.path.exists(out_path):
 		os.makedirs(out_path)
-	outfile_name_tweets = out_path + '/' + 'validate' + twitterHandle + '.tsv'
+	outfile_name_tweets = out_path + '/'  + 'd3_' + twitterHandle + '.tsv'
 	outfile_name_tweets = outfile_name_tweets.replace('\n','')
 	of_tweets = open(outfile_name_tweets, "w")
 	of_tweets.write('Type' + separator + 'TimeStamp' + separator + 'Tweet ID' + separator + 'Text' + separator +  'Reference Url' + separator + 'Reference Handle' + separator + 'Language' + separator + '# Replies' + separator + '# Retweets' + separator + '# Likes' + '\n')
@@ -163,7 +163,7 @@ def getTweetsFromSearchPage(target_user, out_path):
 		count = count + 1
 		browser.get(url)
 		pageSource = browser.page_source
-		soup = BeautifulSoup(pageSource, 'html.parser')
+		soup = BeautifulSoup(pageSource, 'lxml')
 		emptySearch = soup.find("div", attrs={"SearchEmptyTimeline-empty"})
 		if emptySearch is None:
 			tweetLis= getTweetLis(soup)
@@ -174,17 +174,17 @@ def getTweetsFromSearchPage(target_user, out_path):
 
 #writing results to file
 			for li in tweetLis:
-				of_tweets.write('"' + tweetType(li) + '"'
-		  					+ separator + '"' + getTimeStamp(li) + '"'
-							+ separator + '"' + getTweetID(li) + '"'
-		  					+ separator + '"' + getTweetText(li) + '"' 
-							+ separator + '"' + getTweetUrl(li) + '"' 
-							+ separator + '"' + getHandle(li) + '"' 
-							+ separator + '"' + getLanguage(li) + '"' 
-							+ separator + '"' + getReplies(li) + '"' 
-							+ separator + '"' + getRetweets(li) + '"' 
-							+ separator + '"' + getLikes(li) + '"'
-							+ '\n')
+                                of_tweets.write('"' + str(tweetType(li)) + '"'
+                                                        + separator + '"' + str(getTimeStamp(li)) + '"'
+                                                        + separator + '"' + str(getTweetID(li)) + '"'
+                                                        + separator + '"' + str(getTweetText(li)) + '"'
+                                                        + separator + '"' + str(getTweetUrl(li)) + '"'
+                                                        + separator + '"' + str(getHandle(li)) + '"'
+                                                        + separator + '"' + str(getLanguage(li)) + '"'
+                                                        + separator + '"' + str(getReplies(li)) + '"'
+                                                        + separator + '"' + str(getRetweets(li)) + '"'
+                                                        + separator + '"' + str(getLikes(li)) + '"'
+                                                        + '\n')
 	of_tweets.close()
 	browser.quit()
 	return 0
