@@ -96,13 +96,28 @@ statsFile = logs_path + '/' + statsFile.replace('.py', '') + '_' +  datetime.dat
 if os.path.exists(statsFile):
 	stats = file(statsFile, "r+")
 else:
-	stats = file(statsFile, "w")
+	stats = file(statsFile, "a")
 	stats.write('run date' + separator + 'account' + separator + 'join date' + separator + 'tweets/day' + separator + 'total tweets' + separator + 'tweets retrieved' + separator + 'percentage' + separator + 'runtime' + separator +'\n') 
+
+
+print 'this is the startDate'
+print startDate
+print type(startDate)
+print 'this is the endDate'
+print endDate
+print type(endDate)
+
 
 def getTweetsFromSearchPage(target_user, out_path):
 	start_time = timeit.default_timer()
 	global startDate
         global endDate
+	print 'this is the startDate'
+	print startDate
+	print type(startDate)
+	print 'this is the endDate'
+	print endDate
+	print type(endDate)
 # defining twitterHandle
 	twitterHandle = target_user.strip()
 # launching browser
@@ -121,7 +136,8 @@ def getTweetsFromSearchPage(target_user, out_path):
 # getting user's tweets ammout
         numberTweets = getTweetsAmmount(soups)
         numberTweets = numberTweets.replace(",", "")
-
+	print '# tweets: ' + str(numberTweets)
+ 
 # getting user's Twitter join date
 	joinDate = getJoinDate(soups)
 	joinDate = str(joinDate)
@@ -130,6 +146,7 @@ def getTweetsFromSearchPage(target_user, out_path):
 		return 0
 	joinDate = joinDate.split("-", 1)[1]
 	joinDate = datetime.datetime.strptime(joinDate, " %d %b %Y")
+	print 'the join date is: ' + datetime.datetime.strftime(joinDate, " %d %b %Y")
 
 # defining dates
 
@@ -248,7 +265,7 @@ def getTweetsFromSearchPage(target_user, out_path):
                                                         + '\n')
 
 	of_tweets.close()
-	browser.quit()
+	#browser.quit()
 	runtime = timeit.default_timer() - start_time
 	tweetsRetrieved = len(liCount)
 	percentage = (float(tweetsRetrieved)/float(numberTweets)) * 100
@@ -258,6 +275,12 @@ def getTweetsFromSearchPage(target_user, out_path):
  
 	stats.write(datetime.date.today().strftime("%b/%d/%Y") + separator + twitterHandle + separator + datetime.datetime.strftime(joinDate, "%b/%d/%Y") + separator + str(tweetsPerDay) + separator + str(numberTweets) + separator + str(tweetsRetrieved) + separator + percentage + separator + str(runtime) + separator +'\n') 
 	stats.close()	
+	print 'this is the startDate'
+	print startDate
+	print type(startDate)
+	print 'this is the endDate'
+	print endDate
+	print type(endDate)
 	return 0
 
 results = Parallel(n_jobs=cores, verbose=parallel_verbosity)(delayed(getTweetsFromSearchPage)(target, output_path) for target in target_usr_names)
