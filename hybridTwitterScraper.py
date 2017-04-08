@@ -156,10 +156,11 @@ def getTweetsFromSearchPage(target_user, out_path):
         totalDays = today - joinDate
         totalDays = str(totalDays).split(" day", 1)
         totalDays = int(totalDays[0])
-        drange = int(numberTweets) / totalDays
-        drange = round(drange)
-        if drange < 3:
-                drange = 3
+        tweetsPerDay = int(numberTweets) / totalDays
+        tweetsPerDay = round(tweetsPerDay)
+	drange = 3
+        if tweetsPerDay < 5:
+                drange = 5
         print "this is the number of tweets: " + str(numberTweets)
         print "this is the number of days: " + str(totalDays)
         print "this is the range: " + str(drange)
@@ -183,7 +184,7 @@ def getTweetsFromSearchPage(target_user, out_path):
 # creating directory (if not already existed) and file
 	if not os.path.exists(out_path):
 		os.makedirs(out_path)
-	outfile_name_tweets = out_path + '/'  + 'scroll_' + twitterHandle + '.tsv'
+	outfile_name_tweets = out_path + '/'  + 'w_' + twitterHandle + '.tsv'
 	outfile_name_tweets = outfile_name_tweets.replace('\n','')
 	of_tweets = open(outfile_name_tweets, "w")
 	of_tweets.write('Type' + separator + 'TimeStamp' + separator + 'Tweet ID' + separator + 'Text' + separator +  'Reference Url' + separator + 'Reference Handle' + separator + 'Language' + separator + '# Replies' + separator + '# Retweets' + separator + '# Likes' + '\n')
@@ -193,20 +194,21 @@ def getTweetsFromSearchPage(target_user, out_path):
 	count = 0
 	for url in urls:
 		count = count + 1
-		pageSource = getSearchBody(url, browser) 
-		soup = BeautifulSoup(pageSource, 'lxml')
-		emptySearch = soup.find("div", attrs={"SearchEmptyTimeline-empty"})
-		if emptySearch is None:
-			tweetLis= getTweetLis(soup)
-			if not len(tweetLis) > 0:
-				log.write("Could not find Lis for " + twitterHandle + '\n')
-				return 0  
-			li = tweetLis[0]
+		if tweetsPerDay > 5:
+			pageSource = getSearchBody(url, browser) 
+			soup = BeautifulSoup(pageSource, 'lxml')
+			emptySearch = soup.find("div", attrs={"SearchEmptyTimeline-empty"})
+			if emptySearch is None:
+				tweetLis= getTweetLis(soup)
+				if not len(tweetLis) > 0:
+					log.write("Could not find Lis for " + twitterHandle + '\n')
+					return 0  
+				li = tweetLis[0]
 #writing results to file
-			liCount = [] 
-			for li in tweetLis:
-				liCount.append(1)
-                                of_tweets.write('"' + str(tweetType(li)) + '"'
+				liCount = [] 
+				for li in tweetLis:
+					liCount.append(1)
+                                	of_tweets.write('"' + str(tweetType(li)) + '"'
                                                         + separator + '"' + str(getTimeStamp(li)) + '"'
                                                         + separator + '"' + str(getTweetID(li)) + '"'
                                                         + separator + '"' + str(getTweetText(li)) + '"'
@@ -217,17 +219,45 @@ def getTweetsFromSearchPage(target_user, out_path):
                                                         + separator + '"' + str(getRetweets(li)) + '"'
                                                         + separator + '"' + str(getLikes(li)) + '"'
                                                         + '\n')
+
+		else:
+                        browser.get(url)
+                	pageSource = browser.page_source
+                        soup = BeautifulSoup(pageSource, 'lxml')
+                        emptySearch = soup.find("div", attrs={"SearchEmptyTimeline-empty"})
+                        if emptySearch is None:
+                                tweetLis= getTweetLis(soup)
+                                if not len(tweetLis) > 0:
+                                        log.write("Could not find Lis for " + twitterHandle + '\n')
+                                        return 0
+                                li = tweetLis[0]
+#writing results to file
+                                liCount = []
+                                for li in tweetLis:
+                                        liCount.append(1)
+                                        of_tweets.write('"' + str(tweetType(li)) + '"'
+                                                        + separator + '"' + str(getTimeStamp(li)) + '"'
+                                                        + separator + '"' + str(getTweetID(li)) + '"'
+                                                        + separator + '"' + str(getTweetText(li)) + '"'
+                                                        + separator + '"' + str(getTweetUrl(li)) + '"'
+                                                        + separator + '"' + str(getHandle(li)) + '"'
+                                                        + separator + '"' + str(getLanguage(li)) + '"'
+                                                        + separator + '"' + str(getReplies(li)) + '"'
+                                                        + separator + '"' + str(getRetweets(li)) + '"'
+                                                        + separator + '"' + str(getLikes(li)) + '"'
+                                                        + '\n')
+
 	of_tweets.close()
 	browser.quit()
 	runtime = timeit.default_timer() - start_time
 	tweetsRetrieved = len(liCount)
-	percentage = (float(tweetsRetrived)/float(numberTweets)) * 100
+	percentage = (float(tweetsRetrieved)/float(numberTweets)) * 100
 	percentage = str(percentage) + '%'
 	
-	stats.write(runtime + separator + twitterHandle + separator + datetime.datetime.strftime(joinDate, "%b/%d/%Y") + separator + 
-'tweets/day' + separator + str(numberTweets) + separator + 
-str(tweetsRetrieved) + separator + percentage + separator + runtime + separator +'\n') 
-	
+	#print (datetime.date.today().strftime("%b/%d/%Y") + separator + twitterHandle + separator + datetime.datetime.strftime(joinDate, "%b/%d/%Y") + separator + str(tweetsPerDay) + separator + str(numberTweets) + separator + str(tweetsRetrieved) + separator + percentage + separator + str(runtime) + separator +'\n'
+ 
+	stats.write(datetime.date.today().strftime("%b/%d/%Y") + separator + twitterHandle + separator + datetime.datetime.strftime(joinDate, "%b/%d/%Y") + separator + str(tweetsPerDay) + separator + str(numberTweets) + separator + str(tweetsRetrieved) + separator + percentage + separator + str(runtime) + separator +'\n') 
+	stats.close()	
 	return 0
 
 results = Parallel(n_jobs=cores, verbose=parallel_verbosity)(delayed(getTweetsFromSearchPage)(target, output_path) for target in target_usr_names)
