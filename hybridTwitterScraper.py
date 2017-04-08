@@ -3,7 +3,7 @@
 # -*- coding: utf-8 -*-
 
 ##============================================================================== 
-# File:		validateTwitterScraper.py
+# File:		hybridTwitterScraper.py
 # Date:		Mon Mar 20 01:34:34 EDT 2017
 # Author(s):	Thalita Coleman  <thalitaneu@gmail.com>
 # Abstract:	Retrieves tweets data from advanced search results.
@@ -23,6 +23,7 @@ from bs4.builder._lxml import LXML
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
 import time
+import timeit
 import datetime
 import datetime as dt
 from datetime import timedelta
@@ -98,11 +99,10 @@ else:
 	stats = file(statsFile, "w")
 	stats.write('run date' + separator + 'account' + separator + 'join date' + separator + 'tweets/day' + separator + 'total tweets' + separator + 'tweets retrieved' + separator + 'percentage' + separator + 'runtime' + separator +'\n') 
 
-quit()
 def getTweetsFromSearchPage(target_user, out_path):
+	start_time = timeit.default_timer()
 	global startDate
         global endDate
-	separator='\t'
 # defining twitterHandle
 	twitterHandle = target_user.strip()
 # launching browser
@@ -117,6 +117,10 @@ def getTweetsFromSearchPage(target_user, out_path):
 	if not  len(accountStatus) == 0:
 		private.write(twitterHandle + '\n')
                 return 0
+
+# getting user's tweets ammout
+        numberTweets = getTweetsAmmount(soups)
+        numberTweets = numberTweets.replace(",", "")
 
 # getting user's Twitter join date
 	joinDate = getJoinDate(soups)
@@ -147,6 +151,21 @@ def getTweetsFromSearchPage(target_user, out_path):
                 joinDate = startDate
         if endDate > joinDate and endDate <= today:
                 today = endDate
+
+# setting up range
+        totalDays = today - joinDate
+        totalDays = str(totalDays).split(" day", 1)
+        totalDays = int(totalDays[0])
+        drange = int(numberTweets) / totalDays
+        drange = round(drange)
+        if drange < 3:
+                drange = 3
+        print "this is the number of tweets: " + str(numberTweets)
+        print "this is the number of days: " + str(totalDays)
+        print "this is the range: " + str(drange)
+
+        minus3days = (today + timedelta(days=-drange))
+        firstDate = (joinDate + timedelta(days=-drange))
 
         minus3days = (today + timedelta(days=-3))
         firstDate = (joinDate + timedelta(days=-3))
@@ -183,9 +202,10 @@ def getTweetsFromSearchPage(target_user, out_path):
 				log.write("Could not find Lis for " + twitterHandle + '\n')
 				return 0  
 			li = tweetLis[0]
-
 #writing results to file
+			liCount = [] 
 			for li in tweetLis:
+				liCount.append(1)
                                 of_tweets.write('"' + str(tweetType(li)) + '"'
                                                         + separator + '"' + str(getTimeStamp(li)) + '"'
                                                         + separator + '"' + str(getTweetID(li)) + '"'
@@ -199,7 +219,14 @@ def getTweetsFromSearchPage(target_user, out_path):
                                                         + '\n')
 	of_tweets.close()
 	browser.quit()
-	stats.write('run date' + separator + 'account' + separator + 'join date' + separator + 'tweets/day' + separator + 'total tweets' + separator + 'tweets retrieved' + separator + 'percentage' + separator + 'runtime' + separator +'\n') 
+	runtime = timeit.default_timer() - start_time
+	tweetsRetrieved = len(liCount)
+	percentage = (float(tweetsRetrived)/float(numberTweets)) * 100
+	percentage = str(percentage) + '%'
+	
+	stats.write(runtime + separator + twitterHandle + separator + datetime.datetime.strftime(joinDate, "%b/%d/%Y") + separator + 
+'tweets/day' + separator + str(numberTweets) + separator + 
+str(tweetsRetrieved) + separator + percentage + separator + runtime + separator +'\n') 
 	
 	return 0
 
