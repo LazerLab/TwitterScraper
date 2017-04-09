@@ -53,8 +53,6 @@ def load_dict_file(fn, verbose = False):
    
    
 
-
-
 if __name__ == "__main__":
 		
 	#reading config file and setting default params
@@ -82,42 +80,28 @@ separator='\t'
 if not os.path.exists(logs_path):
         os.makedirs(logs_path)
 logfile = logs_path + "/scrape" + str(datetime.date.today()) + ".log"
-log = open(logfile,'w')
+log = open(logfile, "a")
 
 # writing file to keep private accounts
 privateAcctFile = logs_path + "/privateAccounts" + str(datetime.date.today()) + ".txt"
-private = open(privateAcctFile,'w')
+private = open(privateAcctFile, "a")
 
 
 # writing stats file 
 statsFile = sys.argv[0]
 statsFile = statsFile.replace('./', '')
-statsFile = logs_path + '/' + statsFile.replace('.py', '') + '_' +  datetime.date.today().strftime("%b_%d_%Y") + ".tsv" 
+statsFile = logs_path + '/stats_' + statsFile.replace('.py', '') + '_' +  datetime.date.today().strftime("%b_%d_%Y") + ".tsv" 
 if os.path.exists(statsFile):
-	stats = file(statsFile, "r+")
+	stats = open(statsFile, "a")
 else:
-	stats = file(statsFile, "a")
-	stats.write('run date' + separator + 'account' + separator + 'join date' + separator + 'tweets/day' + separator + 'total tweets' + separator + 'tweets retrieved' + separator + 'percentage' + separator + 'runtime' + separator +'\n') 
-
-
-print 'this is the startDate'
-print startDate
-print type(startDate)
-print 'this is the endDate'
-print endDate
-print type(endDate)
+	stats = open(statsFile, "a")
+	stats.write('run_date' + separator + 'account' + separator + 'join_date' + separator + 'tweets/day' + separator + 'total_tweets' + separator + 'tweet_retrieved' + separator + 'percentage' + separator + 'runtime' + separator +'\n') 
 
 
 def getTweetsFromSearchPage(target_user, out_path):
 	start_time = timeit.default_timer()
 	global startDate
         global endDate
-	print 'this is the startDate'
-	print startDate
-	print type(startDate)
-	print 'this is the endDate'
-	print endDate
-	print type(endDate)
 # defining twitterHandle
 	twitterHandle = target_user.strip()
 # launching browser
@@ -136,7 +120,6 @@ def getTweetsFromSearchPage(target_user, out_path):
 # getting user's tweets ammout
         numberTweets = getTweetsAmmount(soups)
         numberTweets = numberTweets.replace(",", "")
-	print '# tweets: ' + str(numberTweets)
  
 # getting user's Twitter join date
 	joinDate = getJoinDate(soups)
@@ -146,7 +129,6 @@ def getTweetsFromSearchPage(target_user, out_path):
 		return 0
 	joinDate = joinDate.split("-", 1)[1]
 	joinDate = datetime.datetime.strptime(joinDate, " %d %b %Y")
-	print 'the join date is: ' + datetime.datetime.strftime(joinDate, " %d %b %Y")
 
 # defining dates
 
@@ -166,10 +148,6 @@ def getTweetsFromSearchPage(target_user, out_path):
         else:
                 endSearch = today
 
-	print type(startDate)
-	print type(joinDate)
-	print type(today)
-
         if startSearch > joinDate and startSearch < today:
                 joinDate = startSearch
         if endSearch > joinDate and endSearch <= today:
@@ -184,9 +162,6 @@ def getTweetsFromSearchPage(target_user, out_path):
 	drange = 3
         if tweetsPerDay < 5:
                 drange = 5
-        print "this is the number of tweets: " + str(numberTweets)
-        print "this is the number of days: " + str(totalDays)
-        print "this is the range: " + str(drange)
 
         minus3days = (today + timedelta(days=-drange))
         firstDate = (joinDate + timedelta(days=-drange))
@@ -214,9 +189,8 @@ def getTweetsFromSearchPage(target_user, out_path):
 
 
 # sorting and scraping urls
-	count = 0
+	liCount = [] 
 	for url in urls:
-		count = count + 1
 		if tweetsPerDay > 5:
 			pageSource = getSearchBody(url, browser) 
 			soup = BeautifulSoup(pageSource, 'lxml')
@@ -228,7 +202,6 @@ def getTweetsFromSearchPage(target_user, out_path):
 					return 0  
 				li = tweetLis[0]
 #writing results to file
-				liCount = [] 
 				for li in tweetLis:
 					liCount.append(1)
                                 	of_tweets.write('"' + str(tweetType(li)) + '"'
@@ -255,7 +228,6 @@ def getTweetsFromSearchPage(target_user, out_path):
                                         return 0
                                 li = tweetLis[0]
 #writing results to file
-                                liCount = []
                                 for li in tweetLis:
                                         liCount.append(1)
                                         of_tweets.write('"' + str(tweetType(li)) + '"'
@@ -271,22 +243,14 @@ def getTweetsFromSearchPage(target_user, out_path):
                                                         + '\n')
 
 	of_tweets.close()
-	#browser.quit()
+	browser.quit()
 	runtime = timeit.default_timer() - start_time
 	tweetsRetrieved = len(liCount)
 	percentage = (float(tweetsRetrieved)/float(numberTweets)) * 100
+	percentage = float("{0:.2f}".format(percentage))
 	percentage = str(percentage) + '%'
 	
-	#print (datetime.date.today().strftime("%b/%d/%Y") + separator + twitterHandle + separator + datetime.datetime.strftime(joinDate, "%b/%d/%Y") + separator + str(tweetsPerDay) + separator + str(numberTweets) + separator + str(tweetsRetrieved) + separator + percentage + separator + str(runtime) + separator +'\n'
- 
-	stats.write(datetime.date.today().strftime("%b/%d/%Y") + separator + twitterHandle + separator + datetime.datetime.strftime(joinDate, "%b/%d/%Y") + separator + str(tweetsPerDay) + separator + str(numberTweets) + separator + str(tweetsRetrieved) + separator + percentage + separator + str(runtime) + separator +'\n') 
-	stats.close()	
-	print 'this is the startDate'
-	print startDate
-	print type(startDate)
-	print 'this is the endDate'
-	print endDate
-	print type(endDate)
+	stats.write(datetime.date.today().strftime("%b/%d/%Y") + separator + twitterHandle + separator + datetime.datetime.strftime(joinDate, "%b/%d/%Y") + separator + str(tweetsPerDay) + separator + str(numberTweets) + separator + str(tweetsRetrieved) + separator + percentage + separator + str(runtime)+'s' + separator +'\n') 
 	return 0
 
 results = Parallel(n_jobs=cores, verbose=parallel_verbosity)(delayed(getTweetsFromSearchPage)(target, output_path) for target in target_usr_names)
