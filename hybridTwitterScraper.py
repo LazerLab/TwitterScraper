@@ -153,21 +153,27 @@ def getTweetsFromSearchPage(target_user, out_path):
         if len(startDate) >= 8:
                 startDate = startDate.replace("-", " ")
                 startDate = datetime.datetime.strptime(startDate, "%d %m %Y")
+		startSearch = startDate
         else:
-                startDate = joinDate
+                startSearch = joinDate
 
         today = dt.datetime.today()
 
         if len(endDate) >= 8:
                 endDate  = endDate.replace("-", " ")
                 endDate = datetime.datetime.strptime(endDate, "%d %m %Y")
+		endSearch = endDate
         else:
-                endDate = today
+                endSearch = today
 
-        if startDate > joinDate and startDate < today:
-                joinDate = startDate
-        if endDate > joinDate and endDate <= today:
-                today = endDate
+	print type(startDate)
+	print type(joinDate)
+	print type(today)
+
+        if startSearch > joinDate and startSearch < today:
+                joinDate = startSearch
+        if endSearch > joinDate and endSearch <= today:
+                today = endSearch
 
 # setting up range
         totalDays = today - joinDate
