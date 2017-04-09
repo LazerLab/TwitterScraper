@@ -1,4 +1,4 @@
-#!/Users/thalitadias/anaconda/bin/python
+#!/usr/bin/python
 
 #============================================================================== 
 # File:         getElements.py         
@@ -77,7 +77,6 @@ def getTweetsAmmount(soup):
                                 number = aDict.get('title') #gets the value for title
 				number = number.split(" ", 1)
 				number = number[0]
-				print "printing variable number: " + str(number)
 	if number == '':
 		number= 'unknown'
 	return number

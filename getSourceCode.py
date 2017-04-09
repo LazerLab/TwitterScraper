@@ -1,4 +1,5 @@
-#!/Users/thalitadias/anaconda/bin/python
+#!/usr/bin/python
+
 # -*- coding: utf-8 -*-
 
 ##============================================================================== 

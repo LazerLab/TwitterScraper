@@ -1,10 +1,10 @@
-#!/Users/thalitadias/anaconda/bin/python
+#!/usr/bin/python
 
 # -*- coding: utf-8 -*-
 
 ##============================================================================== 
 # File:		hybridTwitterScraper.py
-# Date:		Mon Mar 20 01:34:34 EDT 2017
+# Date:		Sat Apr  8 23:47:36 EDT 2017
 # Author(s):	Thalita Coleman  <thalitaneu@gmail.com>
 # Abstract:	Retrieves tweets data from advanced search results.
 #		Creates one TSV file for each twitter handle and saves
@@ -14,6 +14,7 @@
 #------------------------------------------------------------------------------ 
 #============================================================================== 
 
+from pyvirtualdisplay import Display
 import os
 import requests
 from seleniumDriver import *
@@ -86,7 +87,6 @@ log = open(logfile, "a")
 privateAcctFile = logs_path + "/privateAccounts" + str(datetime.date.today()) + ".txt"
 private = open(privateAcctFile, "a")
 
-
 # writing stats file 
 statsFile = sys.argv[0]
 statsFile = statsFile.replace('./', '')
@@ -95,17 +95,21 @@ if os.path.exists(statsFile):
 	stats = open(statsFile, "a")
 else:
 	stats = open(statsFile, "a")
-	stats.write('run_date' + separator + 'account' + separator + 'join_date' + separator + 'tweets/day' + separator + 'total_tweets' + separator + 'tweet_retrieved' + separator + 'percentage' + separator + 'runtime' + separator +'\n') 
+	stats.write('run_date' + separator + 'account' + separator + 'join_date' + separator + 'days_since_created' + separator + 'tweets/day' + separator + 'total_tweets' + separator + 'tweet_retrieved' + separator + 'percentage' + separator + 'runtime' + separator +'\n') 
 
 
 def getTweetsFromSearchPage(target_user, out_path):
 	start_time = timeit.default_timer()
 	global startDate
         global endDate
+	#print startDate
+	#print type(startDate)
 # defining twitterHandle
 	twitterHandle = target_user.strip()
 # launching browser
-	browser= webdriver.Chrome('/Users/thalitadias/Downloads/chromedriver')
+	display = Display(visible=0, size=(1600,1200))
+        display.start()
+	browser= webdriver.Chrome('/home/tcoleman/chromedriver')
 # getting user's join date
 	print 'Processing account: ' + twitterHandle
 	feed = getTwitterFeed(twitterHandle)
@@ -128,9 +132,12 @@ def getTweetsFromSearchPage(target_user, out_path):
 		log.write("Could not find joinDate for " + twitterHandle + '\n')
 		return 0
 	joinDate = joinDate.split("-", 1)[1]
+	#print joinDate
 	joinDate = datetime.datetime.strptime(joinDate, " %d %b %Y")
 
 # defining dates
+	#print startDate
+	#print type(startDate)
 
         if len(startDate) >= 8:
                 startDate = startDate.replace("-", " ")
@@ -141,6 +148,8 @@ def getTweetsFromSearchPage(target_user, out_path):
 
         today = dt.datetime.today()
 
+	#print endDate
+	#print type(endDate)
         if len(endDate) >= 8:
                 endDate  = endDate.replace("-", " ")
                 endDate = datetime.datetime.strptime(endDate, "%d %m %Y")
@@ -244,13 +253,14 @@ def getTweetsFromSearchPage(target_user, out_path):
 
 	of_tweets.close()
 	browser.quit()
+	display.stop()
 	runtime = timeit.default_timer() - start_time
 	tweetsRetrieved = len(liCount)
 	percentage = (float(tweetsRetrieved)/float(numberTweets)) * 100
 	percentage = float("{0:.2f}".format(percentage))
 	percentage = str(percentage) + '%'
 	
-	stats.write(datetime.date.today().strftime("%b/%d/%Y") + separator + twitterHandle + separator + datetime.datetime.strftime(joinDate, "%b/%d/%Y") + separator + str(tweetsPerDay) + separator + str(numberTweets) + separator + str(tweetsRetrieved) + separator + percentage + separator + str(runtime)+'s' + separator +'\n') 
+	stats.write(datetime.date.today().strftime("%b/%d/%Y") + separator + twitterHandle + separator + datetime.datetime.strftime(joinDate, "%b/%d/%Y") + separator + str(totalDays) + separator + str(tweetsPerDay) + separator + str(numberTweets) + separator + str(tweetsRetrieved) + separator + percentage + separator + str(runtime)+'s' + separator +'\n') 
 	return 0
 
 results = Parallel(n_jobs=cores, verbose=parallel_verbosity)(delayed(getTweetsFromSearchPage)(target, output_path) for target in target_usr_names)

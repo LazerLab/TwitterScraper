@@ -1,4 +1,4 @@
-#!/Users/thalitadias/anaconda/bin/python
+#!/usr/bin/python
 
 #============================================================================== 
 # File:         seleniumDriver.py
