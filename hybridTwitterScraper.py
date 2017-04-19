@@ -23,6 +23,7 @@ from bs4 import BeautifulSoup
 from bs4.builder._lxml import LXML
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.firefox.firefox_binary import FirefoxBinary
 import time
 import timeit
 import datetime
@@ -80,28 +81,29 @@ separator='\t'
 # writing logfile	
 if not os.path.exists(logs_path):
         os.makedirs(logs_path)
-logfile = logs_path + "/scrape" + str(datetime.date.today()) + ".log"
-log = open(logfile, "a")
+logfile = logs_path + "/errors" + datetime.date.today().strftime("%b_%d_%Y") + ".log"
 
 # writing file to keep private accounts
-privateAcctFile = logs_path + "/privateAccounts" + str(datetime.date.today()) + ".txt"
-private = open(privateAcctFile, "a")
+privateAcctFile = logs_path + "/privateAccounts" + datetime.date.today().strftime("%b_%d_%Y") + ".txt"
 
 # writing stats file 
 statsFile = sys.argv[0]
 statsFile = statsFile.replace('./', '')
-statsFile = logs_path + '/stats_' + statsFile.replace('.py', '') + '_' +  datetime.date.today().strftime("%b_%d_%Y") + ".tsv" 
-if os.path.exists(statsFile):
-	stats = open(statsFile, "a")
-else:
-	stats = open(statsFile, "a")
-	stats.write('run_date' + separator + 'account' + separator + 'join_date' + separator + 'days_since_created' + separator + 'tweets/day' + separator + 'total_tweets' + separator + 'tweet_retrieved' + separator + 'percentage' + separator + 'runtime' + separator +'\n') 
+statsFile = logs_path + '/logs_' + statsFile.replace('.py', '') + '_' +  datetime.date.today().strftime("%b_%d_%Y") + ".tsv" 
+#if os.path.exists(statsFile):
+#	stats = open(statsFile, "a")
+#else:
+#	stats = open(statsFile, "a")
+#	stats.write('run_date' + separator + 'account' + separator + 'join_date' + separator + 'days_since_created' + separator + 'tweets/day' + separator + 'total_tweets' + separator + 'tweet_retrieved' + separator + 'percentage' + separator + 'runtime' + separator +'\n') 
 
 
 def getTweetsFromSearchPage(target_user, out_path):
 	start_time = timeit.default_timer()
 	global startDate
         global endDate
+	global logfile
+	global privateAcctFile
+	global statsFile
 	#print startDate
 	#print type(startDate)
 # defining twitterHandle
@@ -110,6 +112,10 @@ def getTweetsFromSearchPage(target_user, out_path):
 	display = Display(visible=0, size=(1600,1200))
         display.start()
 	browser= webdriver.Chrome('/home/tcoleman/chromedriver')
+	#browser= webdriver.Firefox('/home/tcoleman/geckodriver')
+	#binary= FirefoxBinary('/home/tcoleman/geckodriver')
+	#binary= FirefoxBinary('/usr/local/selenium/webdriver/firefox')
+	#browser = webdriver.Firefox(firefox_binary=binary)
 # getting user's join date
 	print 'Processing account: ' + twitterHandle
 	feed = getTwitterFeed(twitterHandle)
@@ -118,17 +124,23 @@ def getTweetsFromSearchPage(target_user, out_path):
 
 # testing for private account
 	if not  len(accountStatus) == 0:
+		private = open(privateAcctFile, "a")
 		private.write(twitterHandle + '\n')
                 return 0
 
 # getting user's tweets ammout
         numberTweets = getTweetsAmmount(soups)
         numberTweets = numberTweets.replace(",", "")
+	if numberTweets == 'unknown':
+		log = open(logfile, "a")
+		log.write("Could not find numberTweets for " + twitterHandle + '\n')
+		return 0
  
 # getting user's Twitter join date
 	joinDate = getJoinDate(soups)
 	joinDate = str(joinDate)
 	if joinDate == 'unknown':
+		log = open(logfile, "a")
 		log.write("Could not find joinDate for " + twitterHandle + '\n')
 		return 0
 	joinDate = joinDate.split("-", 1)[1]
@@ -207,6 +219,7 @@ def getTweetsFromSearchPage(target_user, out_path):
 			if emptySearch is None:
 				tweetLis= getTweetLis(soup)
 				if not len(tweetLis) > 0:
+					log = open(logfile, "a")
 					log.write("Could not find Lis for " + twitterHandle + '\n')
 					return 0  
 				li = tweetLis[0]
@@ -233,6 +246,7 @@ def getTweetsFromSearchPage(target_user, out_path):
                         if emptySearch is None:
                                 tweetLis= getTweetLis(soup)
                                 if not len(tweetLis) > 0:
+					log = open(logfile, "a")
                                         log.write("Could not find Lis for " + twitterHandle + '\n')
                                         return 0
                                 li = tweetLis[0]
@@ -251,16 +265,26 @@ def getTweetsFromSearchPage(target_user, out_path):
                                                         + separator + '"' + str(getLikes(li)) + '"'
                                                         + '\n')
 
-	of_tweets.close()
-	browser.quit()
-	display.stop()
-	runtime = timeit.default_timer() - start_time
 	tweetsRetrieved = len(liCount)
 	percentage = (float(tweetsRetrieved)/float(numberTweets)) * 100
 	percentage = float("{0:.2f}".format(percentage))
 	percentage = str(percentage) + '%'
+
+	if os.path.exists(statsFile):
+		stats = open(statsFile, "a")
+		print ">> " + twitterHandle + " DONE at" + str(timeit.default_timer()) 
+	else:
+		stats = open(statsFile, "a")
+		stats.write('run_date' + separator + 'account' + separator + 'join_date' + separator + 'search-range' + separator + 'days_since_created' + separator + 'tweets/day' + separator + 'total_tweets' + separator + 'tweet_retrieved' + separator + 'percentage' + separator + 'runtime' + separator +'\n') 
+		print "I'm opening a stats file for the FIRST time" 
+		print ">> " + twitterHandle + " DONE at" + str(timeit.default_timer()) 
 	
-	stats.write(datetime.date.today().strftime("%b/%d/%Y") + separator + twitterHandle + separator + datetime.datetime.strftime(joinDate, "%b/%d/%Y") + separator + str(totalDays) + separator + str(tweetsPerDay) + separator + str(numberTweets) + separator + str(tweetsRetrieved) + separator + percentage + separator + str(runtime)+'s' + separator +'\n') 
+	runtime = timeit.default_timer() - start_time
+	stats.write(datetime.date.today().strftime("%b/%d/%Y") + separator + twitterHandle + separator + datetime.datetime.strftime(joinDate, "%b/%d/%Y") + separator + str(drange) + separator + str(totalDays) + separator + str(tweetsPerDay) + separator + str(numberTweets) + separator + str(tweetsRetrieved) + separator + percentage + separator + str(runtime)+'s' + separator +'\n') 
+	of_tweets.close()
+	browser.quit()
+	display.stop()
+	#webdriver.close()
 	return 0
 
 results = Parallel(n_jobs=cores, verbose=parallel_verbosity)(delayed(getTweetsFromSearchPage)(target, output_path) for target in target_usr_names)

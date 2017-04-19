@@ -30,15 +30,32 @@ def getSearchBody(url, browser):
         bodylen = [1,2,3,4,5]
         i = 0
         while 1 == 1:
+		try:
                 #body.send_keys(Keys.PAGE_DOWN)
-                browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
-                sleepamt = float("{0:.2f}".format(random.uniform(0.5,0.8)))
-                time.sleep(sleepamt)
-                body_len = len(body.get_attribute('innerHTML'))
-                i = i + 1
-                bodylen[(i%5)] = body_len
-                if all(x == bodylen[0] for x in bodylen):
-                        break
+                	browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                	sleepamt = float("{0:.2f}".format(random.uniform(0.5,0.8)))
+                	time.sleep(sleepamt)
+                	body_len = len(body.get_attribute('innerHTML'))
+                	i = i + 1
+                	bodylen[(i%5)] = body_len
+                	if all(x == bodylen[0] for x in bodylen):
+                        	break
+		except:
+			try: 
+        			browser.get(url)
+        			browser.execute_script("document.body.style.zoom='50%'")
+				time.sleep(2)
+                		browser.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+                		sleepamt = float("{0:.2f}".format(random.uniform(0.5,0.8)))
+                		time.sleep(sleepamt)
+                		body_len = len(body.get_attribute('innerHTML'))
+                		i = i + 1
+                		bodylen[(i%5)] = body_len
+                		if all(x == bodylen[0] for x in bodylen):
+                        		break
+			except:
+				pass 
+			
         body = body.get_attribute('innerHTML')
         return body
 
