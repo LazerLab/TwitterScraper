@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/home/tcoleman/venv/twitter/bin/python
 
 #============================================================================== 
 # File:         getElements.py         
@@ -11,14 +11,17 @@
 
 import requests
 import re
-from seleniumDriver import *
-from bs4 import BeautifulSoup
-from bs4.builder._lxml import LXML
 import datetime
 import datetime as dt
+
+from bs4 import BeautifulSoup
+from bs4.builder._lxml import LXML
 from datetime import timedelta
 from selenium import webdriver
 from selenium.webdriver.common.keys import Keys
+
+from seleniumDriver import *
+
 
 
 #----------------------------------------------------
@@ -28,8 +31,7 @@ from selenium.webdriver.common.keys import Keys
 #----------------------------------------------------
 def getTwitterFeed(twitterHandle):
         base_url = u'https://twitter.com/'
-        end_url = u'/with_replies'
-        url = base_url + twitterHandle + end_url
+        url = base_url + twitterHandle 
         r = requests.get(url)
         return r.text
 
@@ -81,16 +83,33 @@ def getTweetsAmmount(soup):
 		number= 'unknown'
 	return number
 
-#----------------------------------------------------
-# Name: getTweetLis
-# Params: Accepts soup for 1 twitter handle
 
 #----------------------------------------------------
 # Name: getTweetLis
 # Params: Accepts soup for 1 twitter handle
-# Abstract: Returns Li's convitaining tweets for the specified twitter handle
+# Abstract: Returns Li's containing tweets for the specified twitter handle
 #----------------------------------------------------
 def getTweetLis(soup):
+	tweetLis= ['N/A']
+        tweetFound = False
+        lis = soup.findAll('li')
+        for li in lis:
+                if li.has_attr('class'):
+                        if 'js-stream-item' in li['class']:
+                        #if 'stream-item' in li['class']:
+                                if tweetFound == False:
+                                        tweetFound = True
+                                        tweetLis.pop(0)
+                                tweetLis.append(li)
+        return tweetLis
+
+
+#----------------------------------------------------
+# Name: getTweetsPerRange
+# Params: Accepts soup for 1 twitter handle
+# Abstract: Returns number of Li's containing tweets for the specified twitter handle
+#----------------------------------------------------
+def getTweetsPerRange(soup):
 	tweetLis= ['N/A']
         tweetFound = False
         lis = soup.findAll('li')
@@ -101,7 +120,7 @@ def getTweetLis(soup):
                                         tweetFound = True
                                         tweetLis.pop(0)
                                 tweetLis.append(li)
-        return tweetLis
+        return len(tweetLis)
         
 
 #----------------------------------------------------
