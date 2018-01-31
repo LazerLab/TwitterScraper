@@ -8,13 +8,13 @@ Abstract:     Describes the process for retrieving tweets data from Twitter.
 DESCRIPTION
 -----------
 This set of scripts scrapes tweets from Twitter advanced search page. Before using this script, 
-you should collect tweets available on the API (to collect tweets from twitter API 
-we suggest using this library: https://github.com/kennyjoseph/twitter_dm.git). This scripts will collect 
-the tweets that could not be collect from the API because of the rate limit.
+you will need to collect tweets available on the Twitter API (to collect tweets from twitter API 
+we suggest using this library: https://github.com/kennyjoseph/twitter_dm.git). This scripts will then collect 
+the tweets from the advanced search page starting from the date of the last tweet retrieved from the API.
 It produces tsv files named after each twitter handle cointaining the following information about each tweet: 
 type (tweet, quote, reply, retweet, withheld tweet), time stamp, tweet ID, tweet text, reference Url (for retweets and quotes),
 reference handle (for retweets and quotes), language, number of replies, number of retweets, number of likes.
-The output files are saved in a directory called output there is created inside of the
+The output files are saved in a directory called output that is created inside of the
 directory where the program runs.
 
 REQUIREMENTS:
